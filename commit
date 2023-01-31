@@ -1,0 +1,8 @@
+OPEN_API_KEY=$1
+PROMPT='Generate a short summary commit message, using the imperative mood, for the code changes below. The message should be formatted like this: [type] [message] [type] must be one of [build, chore, ci, docs, feat, fix, revert]. [message] and [type] is must be lowercase. The following is the code changes:'
+DIFF=$(git --no-pager diff --diff-filter="AM")
+OUT=`echo ${DIFF:0:10000} | sed "s/\"/'/g"`
+
+RESULT=$(curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer ${OPEN_API_KEY}" -d "{\"model\": \"text-davinci-003\", \"max_tokens\": 64, \"prompt\": \"${PROMPT}:${OUT}\"}" https://api.openai.com/v1/completions | jq '.choices[0].text')
+
+echo "$RESULT" | tr -d '\n'
